@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    font-family: "Figtree", sans-serif;
+    line-height: normal;
+    user-select: none;
+  }
+
+  body {
+    @apply bg-black text-white bg-cover bg-center;
+    font-size: 18px;
+    background-image: url("public/background.svg");
+  }
+
+  h1 {
+    @apply text-5xl font-bold;
+  }
+
+  h2 {
+    @apply text-4xl font-bold;
+  }
+
+  h3 {
+    @apply text-3xl font-semibold;
+  }
+
+  h4 {
+    @apply text-2xl font-semibold;
+  }
+
+  h5 {
+    @apply text-xl font-medium;
+  }
+
+  h6 {
+    @apply text-lg font-medium;
+  }
+}
