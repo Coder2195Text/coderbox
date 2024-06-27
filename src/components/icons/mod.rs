@@ -1,9 +1,9 @@
 pub mod fa;
+pub mod io;
 
 use dioxus::prelude::*;
-use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Props)]
+#[derive(Clone, Debug, PartialEq, Props)]
 pub struct IconProps {
   size: Option<String>,
   color: Option<String>,
