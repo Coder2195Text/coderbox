@@ -2,7 +2,10 @@ use std::time::Duration;
 
 use dioxus::prelude::*;
 
-use crate::{structs::lyrics::LyricLine, SINK_INSTANCE};
+use crate::{
+  structs::{lyrics::LyricLine, song::SongData},
+  SINK_INSTANCE,
+};
 
 #[derive(PartialEq, Clone, Props)]
 pub struct Props {
@@ -13,8 +16,8 @@ pub struct Props {
 pub fn LyricSection(props: Props) -> Element {
   let Props { lyrics } = props;
 
-  let mut current_time = use_context::<Signal<f64>>();
-  let time = current_time();
+  let mut song_data = use_context::<Signal<SongData>>();
+  let time = song_data.read().0;
 
   let color = if time >= lyrics.start() && time < lyrics.start() + lyrics.duration() {
     "text-teal-500"
@@ -30,7 +33,7 @@ pub fn LyricSection(props: Props) -> Element {
             let sink_instance = SINK_INSTANCE.read().unwrap();
             let sink = sink_instance.as_ref().unwrap();
             sink.try_seek(Duration::from_secs_f64(lyrics.start())).ok();
-            current_time.set(lyrics.start());
+            song_data.write().0 = lyrics.start();
         },
         {
           lyrics.content().to_string()

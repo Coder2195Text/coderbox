@@ -31,8 +31,11 @@ pub fn PlaylistCard(props: PlaylistCardProps) -> Element {
           draggable: false
         }
       }
-      div {
-        h6 { {name} }
+      div { class: "flex flex-row",
+        h6 { class: "flex-grow", {name} }
+        {
+
+        }
       }
     }
   }

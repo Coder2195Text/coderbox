@@ -13,7 +13,7 @@ use db::setup::setup_database;
 use dioxus::{desktop::WindowBuilder, prelude::*};
 use once_cell::sync::Lazy;
 use rodio::{Decoder, OutputStream, Sink};
-use structs::{lyrics::LyricLine, playlist::Playlist};
+use structs::{lyrics::LyricLine, playlist::Playlist, song::SongData};
 use tracing::Level;
 
 #[derive(Routable, PartialEq, Clone)]
@@ -141,7 +141,7 @@ fn App() -> Element {
       .into(),
     )
   });
-  use_context_provider(|| Signal::new(0.0));
+  use_context_provider::<Signal<SongData>>(|| Signal::new(SongData(0.0, true)));
   use_context_provider::<Signal<Playlist>>(|| Signal::new(Playlist::MySongs));
 
   rsx! {

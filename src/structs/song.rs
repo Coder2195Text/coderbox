@@ -49,3 +49,6 @@ impl PartialEq for Song {
   }
 }
 impl Eq for Song {}
+
+#[derive(Clone)]
+pub struct SongData(pub f64, pub bool);
