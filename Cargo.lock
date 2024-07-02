@@ -736,6 +736,7 @@ dependencies = [
  "dir",
  "mp3-duration",
  "once_cell",
+ "rand 0.8.5",
  "rodio",
  "rusqlite",
  "serde",

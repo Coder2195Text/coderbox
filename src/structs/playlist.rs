@@ -1,21 +1,18 @@
 use std::path::PathBuf;
 
-use crate::SONGS;
-
 use super::song::Song;
 
 #[derive(Clone)]
-pub struct PlayListData {
+pub struct PlaylistData {
   pub id: String,
   pub name: String,
-  pub songs: Vec<Song>,
   pub image: Option<PathBuf>,
 }
 
 #[derive(Clone)]
 pub enum Playlist {
   MySongs,
-  Custom(PlayListData),
+  Custom(PlaylistData),
 }
 
 impl Playlist {
@@ -30,13 +27,6 @@ impl Playlist {
     match self {
       Playlist::MySongs => "My Songs",
       Playlist::Custom(data) => &data.name,
-    }
-  }
-
-  pub fn songs(&self) -> &Vec<Song> {
-    match self {
-      Playlist::MySongs => panic!("Don't call songs on MySongs"),
-      Playlist::Custom(data) => &data.songs,
     }
   }
 

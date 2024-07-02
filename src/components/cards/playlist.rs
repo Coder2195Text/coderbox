@@ -1,8 +1,9 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, time::Duration};
 
 use dioxus::prelude::*;
 
-use crate::structs::playlist::Playlist;
+use crate::structs::{playlist::Playlist, song::Playing};
+use rand::random;
 
 #[derive(Clone, Debug, PartialEq, Props)]
 pub struct PlaylistCardProps {
@@ -18,23 +19,66 @@ pub fn PlaylistCard(props: PlaylistCardProps) -> Element {
     .map(|image| image.to_string_lossy().to_string())
     .unwrap_or("".into());
 
+  let mut hovered = use_signal(|| false);
+
   let current = use_context::<Signal<Playlist>>();
 
-  let is_current = current.read().id() == id;
+  let playing = use_context::<Signal<Playing>>();
+
+  let mut sound_waves = use_signal(|| [2.0; 6]);
+
+  let moved_id = id.clone();
+
+  let _task: Coroutine<()> = use_coroutine(|_| async move {
+    loop {
+      tokio::time::sleep(Duration::from_millis(500)).await;
+      let mut array = [2.0; 6];
+      if playing().0 && current().id() == moved_id {
+        for i in 0..6 {
+          array[i] = random::<f64>() * 22.0 + 2.0;
+        }
+      }
+
+      sound_waves.set(array);
+    }
+  });
 
   rsx! {
-    div { class: "bg-gray-500 bg-opacity-30 rounded-md p-2",
-      div { class: "w-40 h-40",
+    div {
+      class: "bg-gray-500 bg-opacity-30 rounded-md w-48",
+      onpointerenter: move |_| {
+          hovered.set(true);
+      },
+      onpointerleave: move |_| {
+          hovered.set(false);
+      },
+      div { class: "p-2 w-full",
         img {
           src: image,
-          class: "object-cover rounded-md",
+          class: "object-cover rounded-md w-full",
           draggable: false
         }
       }
-      div { class: "flex flex-row",
+      div { class: "flex flex-row p-2",
         h6 { class: "flex-grow", {name} }
         {
-
+          if hovered() {
+            rsx! {}
+          } else if playing().0 && current().id() == id {
+            rsx! { div {
+              class: "flex flex-row items-center gap-1",
+              {sound_waves().iter().enumerate().map(|(i, wave)|
+                rsx! {
+                div {
+                  class: "w-0.5 bg-white transition-all duration-500 rounded-full",
+                  style: format!("height: {}px;", wave),
+                  key: "{i}"
+                }
+              })}
+            }}
+          } else {
+            rsx! {}
+          }
         }
       }
     }

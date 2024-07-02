@@ -13,8 +13,9 @@ use crate::components::icons::io::IoVolumeHighOutline;
 use crate::components::icons::io::IoVolumeLowOutline;
 use crate::components::icons::io::IoVolumeMediumOutline;
 use crate::components::icons::io::IoVolumeOffOutline;
+use crate::structs::song::CurrentTime;
+use crate::structs::song::Playing;
 use crate::structs::song::Song;
-use crate::structs::song::SongData;
 use crate::Route;
 use crate::SINK_INSTANCE;
 
@@ -22,7 +23,8 @@ use crate::SINK_INSTANCE;
 pub fn Player() -> Element {
   let mut held = use_signal(|| false);
   let mut volume = use_signal(|| 100.0);
-  let mut song_data = use_context::<Signal<SongData>>();
+  let mut current_time = use_context::<Signal<CurrentTime>>();
+  let mut playing = use_context::<Signal<Playing>>();
 
   let current_song = use_context::<Signal<Option<Song>>>();
 
@@ -32,17 +34,17 @@ pub fn Player() -> Element {
   let _progress_task: Coroutine<()> = use_coroutine(|_| async move {
     loop {
       tokio::time::sleep(time::Duration::from_millis(200)).await;
-      if held() || !song_data().1 {
+      if held() || !playing().0 {
         continue;
       }
-      song_data.write().0 += 0.2;
+      current_time.write().0 += 0.2;
     }
   });
 
   let sink_instance: std::sync::RwLockReadGuard<Option<rodio::Sink>> =
     SINK_INSTANCE.read().unwrap();
   let sink = sink_instance.as_ref().unwrap();
-  if song_data().1 {
+  if playing().0 {
     sink.play();
   } else {
     sink.pause();
@@ -58,7 +60,7 @@ pub fn Player() -> Element {
     div { class: "m-2 rounded-md gradient-bg p-2 gap-2 flex",
       div { class: "w-1/4 px-2",
         {
-          song.as_ref().map(|song| song.name()).unwrap_or("Not song_data().1")
+          song.as_ref().map(|song| song.name()).unwrap_or("Not playing().0")
         },
         br {}
         {
@@ -72,7 +74,7 @@ pub fn Player() -> Element {
           min: 0,
           step: 0.2,
           max: duration.map(|d| d.as_secs()).unwrap_or(0) as f64,
-          value: song_data().0,
+          value: current_time().0,
           class: "w-full",
           onmousedown: move |_| {
               held.set(true);
@@ -80,7 +82,7 @@ pub fn Player() -> Element {
           onmouseup: move |_| {
               let sink_instance = SINK_INSTANCE.read().unwrap();
               let sink = sink_instance.as_ref().unwrap();
-              let current = song_data().0;
+              let current = current_time().0;
               if sink.empty() {
                   if let Some(song) = &song {
                       let source = Decoder::new(
@@ -94,23 +96,23 @@ pub fn Player() -> Element {
               held.set(false);
           },
           oninput: move |e| {
-              song_data.write().0 = e.value().parse().unwrap();
+              current_time.write().0 = e.value().parse().unwrap();
           }
         }
         div { class: "flex pt-1 justify-between flex-grow items-start",
           div { class: "text-sm w-1/4",
             {
-              let val = song_data().0;
+              let val = current_time().0;
               format!("{:02}:{:02}", val as u64 / 60, val as u64 % 60)
             }
           }
           button {
             class: "mx-auto",
             onclick: move |_| {
-                song_data.write().1 = !song_data().1;
+                playing.write().0 = !playing().0;
             },
             {
-              if song_data().1 {
+              if playing().0 {
                 rsx! {
                   FaRegCirclePause {
                       size: "32px",

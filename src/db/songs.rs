@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 use rusqlite::Connection;
 
 use crate::{structs::song::Song, DATABASE_URL};

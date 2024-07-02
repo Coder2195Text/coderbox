@@ -12,7 +12,7 @@ pub fn Lyrics() -> Element {
       h1 { "Lyrics" }
       {
         if let Some(song) = current_song {
-          if let Some(lyrics) = song.lyrics {
+          if let Some(lyrics) = song.lyrics_content() {
             rsx! {
               div {
                 {
