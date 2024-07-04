@@ -1,13 +1,11 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
-use dioxus::html::image;
 use rusqlite::Connection;
 
 use crate::{
-  components::lyrics,
   structs::{
+    music_db::MusicDB,
     playlist::{Playlist, PlaylistData},
-    playlist_songs::PlaylistSongs,
     song::Song,
   },
   DATABASE_URL,
@@ -17,7 +15,7 @@ pub fn setup_database() -> Result<(), rusqlite::Error> {
   let root = DATABASE_URL.to_path_buf();
   let connection = Connection::open(root)?;
 
-  connection.execute(
+  connection.execute_batch(
     "
     CREATE TABLE IF NOT EXISTS songs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,53 +24,58 @@ pub fn setup_database() -> Result<(), rusqlite::Error> {
       location TEXT NOT NULL,
       lyrics TEXT,
       image TEXT
-    )",
-    (),
-  )?;
-
-  connection.execute(
-    "
+    );
     CREATE TABLE IF NOT EXISTS playlists (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       image TEXT
-    )",
-    (),
+    );
+    CREATE TABLE IF NOT EXISTS playlist_songs (
+      playlist_id INTEGER NOT NULL,
+      song_id INTEGER NOT NULL,
+      FOREIGN KEY (playlist_id) REFERENCES playlists(id),
+      FOREIGN KEY (song_id) REFERENCES songs(id),
+      PRIMARY KEY (playlist_id, song_id)
+    );",
   )?;
 
   Ok(())
 }
 
-pub fn load_playlist_songs() -> PlaylistSongs {
+pub fn load_db_data() -> MusicDB {
   let root = DATABASE_URL.to_path_buf();
   let connection = Connection::open(root).unwrap();
 
-  let mut playlist_songs = PlaylistSongs::new();
+  let mut db = MusicDB::new();
 
   let mut query = connection
-    .prepare("SELECT id, name, image FROM playlists")
+    .prepare("SELECT id, name, image FROM playlists;")
     .unwrap();
 
-  query
+  let query_iter = query
     .query_map([], |row| {
       let path: Option<String> = row.get(2).ok();
       let path = path.map(|path| PathBuf::try_from(path).ok()).flatten();
 
-      playlist_songs.add_playlist(Playlist::Custom(PlaylistData {
-        id: row.get(0)?,
-        name: row.get(1)?,
-        image: path,
-      }));
-
-      Ok(())
+      Ok(
+        (Playlist::Custom(PlaylistData {
+          id: row.get(0)?,
+          name: row.get(1)?,
+          image: path,
+        })),
+      )
     })
-    .ok();
-
-  let mut query = connection
-    .prepare("SELECT id, name, artist, location, lyrics, image FROM songs")
     .unwrap();
 
-  query
+  for playlist in query_iter {
+    db.add_playlist(playlist.unwrap());
+  }
+
+  let mut query = connection
+    .prepare("SELECT id, name, artist, location, lyrics, image FROM songs;")
+    .unwrap();
+
+  let query_iter = query
     .query_map([], |row| {
       let location_path: String = row.get(3)?;
       let location_path = PathBuf::from(location_path);
@@ -89,7 +92,7 @@ pub fn load_playlist_songs() -> PlaylistSongs {
 
       let duration = mp3_duration::from_path(location_path.as_path()).ok();
 
-      playlist_songs.add_song(Song {
+      Ok(Song {
         id: row.get(0)?,
         name: row.get(1)?,
         artist: row.get(2)?,
@@ -97,11 +100,26 @@ pub fn load_playlist_songs() -> PlaylistSongs {
         lyrics: lyrics_path,
         image: image_path,
         duration,
-      });
-
-      Ok(())
+      })
     })
-    .ok();
+    .expect("failed to load songs");
 
-  playlist_songs
+  for song in query_iter {
+    db.add_song(song.unwrap());
+  }
+
+  let mut query = connection
+    .prepare("SELECT playlist_id, song_id FROM playlist_songs;")
+    .unwrap();
+
+  let query_iter = query
+    .query_map([], |row| Ok((row.get(0)?, row.get(1)?)))
+    .unwrap();
+
+  for item in query_iter {
+    let (playlist_id, song_id) = item.unwrap();
+    db.add_song_to_playlist(song_id, playlist_id);
+  }
+
+  db
 }

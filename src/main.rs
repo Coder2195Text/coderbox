@@ -9,12 +9,11 @@ use crate::pages::home::Home;
 use crate::pages::lyrics::Lyrics;
 use crate::structs::song::Song;
 use components::ui::layout::Layout;
-use db::setup::setup_database;
+use db::setup::{load_db_data, setup_database};
 use dioxus::{desktop::WindowBuilder, prelude::*};
 use once_cell::sync::Lazy;
 use rodio::{Decoder, OutputStream, Sink};
 use structs::{
-  lyrics::LyricLine,
   playlist::Playlist,
   song::{CurrentTime, Playing},
 };
@@ -70,23 +69,10 @@ fn main() {
 
 #[component]
 fn App() -> Element {
-  let home = dir::home_dir().expect("failed to get home dir");
-  let path = home.join("Music/rickroll.mp3");
+  let db = use_context_provider(|| Signal::new(load_db_data()));
 
-  use_context_provider::<Signal<Option<Song>>>(|| {
-    Signal::new(
-      Song {
-        name: "Never Gonna Give You Up".to_string(),
-        artist: "Rick Astley".to_string(),
-        duration: mp3_duration::from_path(path.clone()).ok(),
-        location: path,
-        lyrics: None,
-        image: None,
-        id: "1".to_string(),
-      }
-      .into(),
-    )
-  });
+  use_context_provider::<Signal<Option<Song>>>(|| Signal::new(db.read().get_song(1).cloned()));
+
   use_context_provider(|| Signal::new(CurrentTime(0.0)));
   use_context_provider(|| Signal::new(Playing(false)));
   use_context_provider(|| Signal::new(Playlist::MySongs));

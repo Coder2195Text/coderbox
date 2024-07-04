@@ -9,7 +9,7 @@ pub fn Home() -> Element {
     div {
       h1 { "Home" }
       PlaylistCard {
-        id: "my-songs".to_string(),
+        id: 0,
         name: "My Songs".to_string(),
         image: PathBuf::from("/home/coder2195/Downloads/pack.png")
       }

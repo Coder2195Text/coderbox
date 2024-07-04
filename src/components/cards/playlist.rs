@@ -3,13 +3,13 @@ use std::{path::PathBuf, time::Duration};
 use dioxus::prelude::*;
 
 use crate::structs::{playlist::Playlist, song::Playing};
-use rand::random;
+use rand::{distributions::Uniform, Rng};
 
 #[derive(Clone, Debug, PartialEq, Props)]
 pub struct PlaylistCardProps {
   pub name: String,
   pub image: Option<PathBuf>,
-  pub id: String,
+  pub id: i32,
 }
 
 #[component]
@@ -25,21 +25,20 @@ pub fn PlaylistCard(props: PlaylistCardProps) -> Element {
 
   let playing = use_context::<Signal<Playing>>();
 
-  let mut sound_waves = use_signal(|| [2.0; 6]);
+  let mut sound_waves = use_signal(|| vec![2.0; 6]);
 
   let moved_id = id.clone();
 
   let _task: Coroutine<()> = use_coroutine(|_| async move {
     loop {
       tokio::time::sleep(Duration::from_millis(500)).await;
-      let mut array = [2.0; 6];
       if playing().0 && current().id() == moved_id {
-        for i in 0..6 {
-          array[i] = random::<f64>() * 22.0 + 2.0;
-        }
+        let array: Vec<f64> = rand::thread_rng()
+          .sample_iter(Uniform::from(2.0..24.0))
+          .take(6)
+          .collect();
+        sound_waves.set(array);
       }
-
-      sound_waves.set(array);
     }
   });
 

@@ -4,7 +4,7 @@ use super::lyrics::{LyricLine, Lyrics};
 
 #[derive(Clone)]
 pub struct Song {
-  pub id: String,
+  pub id: i32,
   pub name: String,
   pub artist: String,
   pub duration: Option<Duration>,
@@ -14,8 +14,8 @@ pub struct Song {
 }
 
 impl Song {
-  pub fn id(&self) -> &str {
-    &self.id
+  pub fn id(&self) -> i32 {
+    self.id
   }
 
   pub fn name(&self) -> &str {

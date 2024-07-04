@@ -60,7 +60,7 @@ pub fn Player() -> Element {
     div { class: "m-2 rounded-md gradient-bg p-2 gap-2 flex",
       div { class: "w-1/4 px-2",
         {
-          song.as_ref().map(|song| song.name()).unwrap_or("Not playing().0")
+          song.as_ref().map(|song| song.name()).unwrap_or("Not playing()")
         },
         br {}
         {

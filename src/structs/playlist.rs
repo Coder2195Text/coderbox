@@ -4,7 +4,7 @@ use super::song::Song;
 
 #[derive(Clone)]
 pub struct PlaylistData {
-  pub id: String,
+  pub id: i32,
   pub name: String,
   pub image: Option<PathBuf>,
 }
@@ -16,10 +16,10 @@ pub enum Playlist {
 }
 
 impl Playlist {
-  pub fn id(&self) -> &str {
+  pub fn id(&self) -> i32 {
     match self {
-      Playlist::MySongs => "my-songs",
-      Playlist::Custom(data) => &data.id,
+      Playlist::MySongs => 0,
+      Playlist::Custom(data) => data.id,
     }
   }
 
