@@ -1,34 +1,44 @@
 use dioxus::prelude::*;
 
-use crate::{components::lyrics::section::LyricSection, structs::song::Song};
+use crate::{
+  components::lyrics::section::LyricSection,
+  structs::{lyrics::Lyrics, song::Song},
+};
 
 #[component]
 pub fn Lyrics() -> Element {
   let song = use_context::<Signal<Option<Song>>>();
   let current_song = song();
 
+  let mut lyrics = use_signal::<Result<Lyrics, String>>(|| Err("Loading Lyrics...".to_string()));
+
+  use_coroutine(|_: UnboundedReceiver<()>| async move {
+    if let Some(song) = current_song {
+      let lyrics_content = song.lyrics_content().await;
+      lyrics.set(lyrics_content);
+    } else {
+      lyrics.set(Err("No song selected".to_string()));
+    }
+  });
+
+  // hacky solution :skull:
+  // confused rn
   rsx! {
     div {
       h1 { "Lyrics" }
       {
-        if let Some(song) = current_song {
-          if let Some(lyrics) = song.lyrics_content() {
-            rsx! {
-              div {
-                {
-                  lyrics.iter().map(|line| {
-                    rsx! {
-                      LyricSection { lyrics: line.clone() }
-                    }
-                  })
-                }
-              }
-            }
-          } else {
-            rsx!{div { "No lyrics found" }}
+        match lyrics() {
+          Ok(lyrics) => {
+            rsx!( div {{
+                lyrics.iter().map(|line| {
+                  rsx! (LyricSection { lyrics: line.clone() })
+                })
+              }})
           }
-        } else {
-          rsx!{div { "No song selected" }}
+
+          Err(err) => {
+            rsx!(div { {err} })
+          }
         }
       }
     }

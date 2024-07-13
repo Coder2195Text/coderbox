@@ -57,13 +57,11 @@ pub fn load_db_data() -> MusicDB {
       let path: Option<String> = row.get(2).ok();
       let path = path.map(|path| PathBuf::try_from(path).ok()).flatten();
 
-      Ok(
-        (Playlist::Custom(PlaylistData {
-          id: row.get(0)?,
-          name: row.get(1)?,
-          image: path,
-        })),
-      )
+      Ok(Playlist::Custom(PlaylistData {
+        id: row.get(0)?,
+        name: row.get(1)?,
+        image: path,
+      }))
     })
     .unwrap();
 

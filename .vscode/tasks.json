@@ -1,0 +1,19 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "tailwindcss",
+      "type": "shell",
+      "command": "npx tailwindcss -i ./src/tailwind.css -o ./public/tailwind.css --watch",
+      "runOptions": { "runOn": "folderOpen" }
+    },
+    {
+      "label": "dioxus",
+      "type": "shell",
+      "command": "dx serve --hot-reload --platform desktop",
+      "runOptions": { "runOn": "folderOpen" }
+    }
+  ]
+}

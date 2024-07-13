@@ -1,10 +1,11 @@
-use std::time::Duration;
-
 use dioxus::prelude::*;
 
 use crate::{
-  structs::{lyrics::LyricLine, song::CurrentTime},
-  SINK_INSTANCE,
+  structs::{
+    lyrics::LyricLine,
+    song::{CurrentTime, Song},
+  },
+  utils::player::set_play,
 };
 
 #[derive(PartialEq, Clone, Props)]
@@ -16,7 +17,7 @@ pub struct Props {
 pub fn LyricSection(props: Props) -> Element {
   let Props { lyrics } = props;
 
-  let mut time = use_context::<Signal<CurrentTime>>();
+  let time = use_context::<Signal<CurrentTime>>();
 
   // skibi skibid skibidi toilet sigma rizzlet fanum tax
   let color = if time().0 >= lyrics.start() && time().0 < lyrics.start() + lyrics.duration() {
@@ -25,15 +26,24 @@ pub fn LyricSection(props: Props) -> Element {
     "text-white"
   };
 
+  let current_song = use_context::<Signal<Option<Song>>>();
+  let song = current_song();
+
   rsx! {
     div {
       button {
         class: format!("text-xl font-bold {color}"),
         onclick: move |_| {
-            let sink_instance = SINK_INSTANCE.read().unwrap();
-            let sink = sink_instance.as_ref().unwrap();
-            sink.try_seek(Duration::from_secs_f64(lyrics.start())).ok();
-            time.write().0 = lyrics.start();
+            if let Some(song) = &song {
+                set_play(
+                    song.clone(),
+                    current_song,
+                    lyrics.start().into(),
+                    time.into(),
+                    None,
+                    None,
+                );
+            }
         },
         {
           lyrics.content().to_string()

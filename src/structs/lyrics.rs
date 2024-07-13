@@ -30,3 +30,24 @@ impl LyricLine {
     &self.content
   }
 }
+
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct RawLyrics {
+  pub synced_lyrics: Option<String>,
+  pub id: i32,
+}
+
+impl RawLyrics {
+  pub fn new(synced_lyrics: Option<String>, id: i32) -> Self {
+    Self { synced_lyrics, id }
+  }
+
+  pub fn synced_lyrics(&self) -> Option<String> {
+    self.synced_lyrics.clone()
+  }
+
+  pub fn id(&self) -> i32 {
+    self.id
+  }
+}

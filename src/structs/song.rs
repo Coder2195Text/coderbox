@@ -1,6 +1,6 @@
-use std::{path::PathBuf, time::Duration};
+use std::{future::Future, path::PathBuf, time::Duration};
 
-use super::lyrics::{LyricLine, Lyrics};
+use super::lyrics::{LyricLine, Lyrics, RawLyrics};
 
 #[derive(Clone)]
 pub struct Song {
@@ -38,62 +38,68 @@ impl Song {
     self.lyrics.as_ref()
   }
 
-  pub fn lyrics_content(&self) -> Option<Lyrics> {
-    vec![
-      LyricLine::new(0.0, 14.65, "[Music]".to_string()),
-      LyricLine::new(18.8, 7.239, "we're no strangers to".to_string()),
-      LyricLine::new(21.8, 7.84, "love you know the rules and so do".to_string()),
-      LyricLine::new(
-        26.039,
-        5.201,
-        "I I full commitments while I'm thinking".to_string(),
-      ),
-      LyricLine::new(29.64, 5.88, "of".to_string()),
-      LyricLine::new(
-        31.24,
-        8.2,
-        "you wouldn't get this from any other guy".to_string(),
-      ),
-      LyricLine::new(35.52, 7.84, "I just want to tell you how I'm".to_string()),
-      LyricLine::new(
-        39.44,
-        6.759,
-        "feeling got to make you understand Never".to_string(),
-      ),
-      LyricLine::new(
-        43.36,
-        6.359,
-        "Going To Give You Up never going to let".to_string(),
-      ),
-      LyricLine::new(
-        46.199,
-        7.441,
-        "you down never going to run around and".to_string(),
-      ),
-      LyricLine::new(
-        49.719,
-        6.401,
-        "desert you never going to make you cry".to_string(),
-      ),
-      LyricLine::new(
-        53.64,
-        7.12,
-        "never going to say goodbye never going".to_string(),
-      ),
-      LyricLine::new(56.12, 7.84, "to tell a lie and hurt you".to_string()),
-      LyricLine::new(60.76, 6.56, "we've known each other for so".to_string()),
-      LyricLine::new(
-        63.96,
-        6.64,
-        "long your heart's been aching but your".to_string(),
-      ),
-      LyricLine::new(
-        67.32,
-        5.2,
-        "to sh to say it inside we both know".to_string(),
-      ),
-    ]
-    .into()
+  pub async fn lyrics_content(&self) -> Result<Lyrics, String> {
+    if self.lyrics.is_none() {
+      let raw_lyrics = reqwest::get(format!(
+        "https://lrclib.net/api/search?track_name={}",
+        self.name
+      ))
+      .await
+      .expect("Failed to fetch lyrics.")
+      .json::<Vec<RawLyrics>>()
+      .await
+      .expect("Failed to parse lyrics.");
+
+      let mut lyrics = vec![];
+      let raw_lyric = raw_lyrics.get(0);
+      if let None = raw_lyric {
+        return Err("No lyrics found".to_string());
+      }
+      let raw_lyric = raw_lyric.unwrap().clone();
+      let lines = raw_lyric.synced_lyrics();
+      if let None = lines {
+        return Err("No lyrics found".to_string());
+      }
+      let lines = lines.unwrap();
+      let lines = lines.split('\n');
+
+      let mut first = true;
+      for line in lines.rev().into_iter() {
+        let mut parts = line.split(']');
+        // parse 03:06.57 etc
+        let time = parts
+          .next()
+          .unwrap()
+          .split('[')
+          .last()
+          .unwrap()
+          .split(':')
+          .map(|s| s.parse::<f64>().unwrap())
+          .collect::<Vec<f64>>();
+
+        let time = time[0] * 60.0 + time[1];
+
+        let content = parts.next().unwrap().trim().to_string();
+
+        if first {
+          first = false;
+          lyrics.push(LyricLine::new(
+            time,
+            self.duration.map(|d| d.as_secs_f64()).unwrap_or(time),
+            content,
+          ));
+        } else {
+          let last = lyrics.last().unwrap();
+          let duration = last.start() - time;
+          lyrics.push(LyricLine::new(time, duration, content));
+        }
+      }
+
+      lyrics.reverse();
+
+      return Ok(lyrics);
+    }
+    Err("No lyrics found".to_string())
   }
 
   pub fn image(&self) -> Option<&PathBuf> {

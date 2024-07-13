@@ -10,7 +10,9 @@ pub fn Layout() -> Element {
     div { class: "h-screen w-screen flex flex-col justify-center",
       div { class: "flex-grow flex flex-row",
         Nav {}
-        div { class: "p-2", Outlet::<Route> {} }
+        div { class: "p-2 w-3/4 pb-20 h-[calc(100dvh-88px)] overflow-auto",
+          Outlet::<Route> {}
+        }
       }
       Player {}
     }

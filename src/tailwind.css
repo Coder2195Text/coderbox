@@ -9,34 +9,28 @@
     user-select: none;
   }
 
-  body {
-    @apply bg-black text-white bg-cover bg-center;
-    font-size: 18px;
-    background-image: url("public/background.svg");
-  }
-
   h1 {
-    @apply text-5xl font-bold;
+    @apply text-5xl font-bold py-3;
   }
 
   h2 {
-    @apply text-4xl font-bold;
+    @apply text-4xl font-bold py-2.5;
   }
 
   h3 {
-    @apply text-3xl font-semibold;
+    @apply text-3xl font-semibold py-2;
   }
 
   h4 {
-    @apply text-2xl font-semibold;
+    @apply text-2xl font-semibold py-1.5;
   }
 
   h5 {
-    @apply text-xl font-medium;
+    @apply text-xl font-medium py-1;
   }
 
   h6 {
-    @apply text-lg font-medium;
+    @apply text-lg font-medium py-0.5;
   }
 
   input[type="range"] {
@@ -74,12 +68,14 @@
   }
 
   body {
+    @apply bg-black text-white bg-cover bg-center;
+    background-image: url("public/background.svg");
     margin: 0;
     min-height: 100vh;
     display: grid;
     gap: 40px;
     place-content: center;
-    background: repeating-linear-gradient(-45deg, #fff 0 20px, #f9f9f9 0 40px);
+    font-size: 16px !important;
   }
 
   button,

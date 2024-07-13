@@ -59,6 +59,10 @@ impl MusicDB {
     self.playlist_contents.get(&playlist_id)
   }
 
+  pub fn get_playlists(&self) -> &HashMap<i32, Playlist> {
+    &self.playlists
+  }
+
   pub fn get_song_playlists(&self, song_id: i32) -> Option<&Vec<i32>> {
     self.song_playlists.get(&song_id)
   }

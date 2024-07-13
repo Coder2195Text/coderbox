@@ -1,16 +1,29 @@
+extern crate image;
+
 mod components;
 mod db;
 mod pages;
 mod structs;
+mod utils;
 
-use std::{fs::File, io::BufReader, path::PathBuf, sync::RwLock, thread, time::Duration};
+use std::{
+  fs::File,
+  io::BufReader,
+  path::PathBuf,
+  sync::RwLock,
+  thread,
+  time::{Duration, Instant},
+};
 
 use crate::pages::home::Home;
 use crate::pages::lyrics::Lyrics;
 use crate::structs::song::Song;
 use components::ui::layout::Layout;
 use db::setup::{load_db_data, setup_database};
-use dioxus::{desktop::WindowBuilder, prelude::*};
+use dioxus::{
+  desktop::{tao::window::Icon, WindowBuilder},
+  prelude::*,
+};
 use once_cell::sync::Lazy;
 use rodio::{Decoder, OutputStream, Sink};
 use structs::{
@@ -32,6 +45,7 @@ pub enum Route {
 static DATABASE_URL: Lazy<PathBuf> =
   Lazy::new(|| dir::home_dir().unwrap().join("Music/coderbox.db"));
 static SINK_INSTANCE: RwLock<Option<Sink>> = RwLock::new(None);
+static TIME: Lazy<RwLock<Instant>> = Lazy::new(|| RwLock::new(Instant::now()));
 
 fn main() {
   setup_database().expect("failed to setup database");
@@ -62,7 +76,12 @@ fn main() {
 
   let cfg = dioxus::desktop::Config::new()
     .with_custom_head("<link rel=\"stylesheet\" href=\"public/tailwind.css\">".to_string())
-    .with_window(WindowBuilder::new().with_title("Coderbox"));
+    .with_window(
+      WindowBuilder::new()
+        .with_title("Coderbox")
+        .with_maximized(true),
+    )
+    .with_icon(load_icon("./public/icon.png".into()).into());
 
   LaunchBuilder::desktop().with_cfg(cfg).launch(App);
 }
@@ -80,6 +99,19 @@ fn App() -> Element {
   rsx! {
     Router::<Route> {}
   }
+}
+
+fn load_icon(path: PathBuf) -> Icon {
+  let (icon_rgba, icon_width, icon_height) = {
+    // alternatively, you can embed the icon in the binary through `include_bytes!` macro and use `image::load_from_memory`
+    let image = image::open(path)
+      .expect("Failed to open icon path")
+      .into_rgba8();
+    let (width, height) = image.dimensions();
+    let rgba = image.into_raw();
+    (rgba, width, height)
+  };
+  Icon::from_rgba(icon_rgba, icon_width, icon_height).expect("Failed to open icon")
 }
 
 #[component]
