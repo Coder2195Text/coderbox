@@ -2,7 +2,7 @@ use dioxus::prelude::*;
 
 use crate::{
   components::lyrics::section::LyricSection,
-  structs::{lyrics::Lyrics, song::Song},
+  structs::{lyrics::Lyrics as LyricsType, song::Song},
 };
 
 #[component]
@@ -10,7 +10,7 @@ pub fn Lyrics() -> Element {
   let song = use_context::<Signal<Option<Song>>>();
   let current_song = song();
 
-  let mut lyrics = use_signal::<Result<Lyrics, String>>(|| Err("Loading Lyrics...".to_string()));
+  let mut lyrics = use_signal::<Result<LyricsType, String>>(|| Err("Loading Lyrics...".to_string()));
 
   use_coroutine(|_: UnboundedReceiver<()>| async move {
     if let Some(song) = current_song {
