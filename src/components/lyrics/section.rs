@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use dioxus::prelude::*;
 
 use crate::{
@@ -30,7 +32,7 @@ pub fn LyricSection(props: Props) -> Element {
   let song = current_song();
 
   rsx! {
-    div {
+    div { id: "l-{lyrics.start()}",
       button {
         class: format!("text-xl font-bold {color}"),
         onclick: move |_| {
