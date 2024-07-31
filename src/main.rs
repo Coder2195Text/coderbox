@@ -1,36 +1,29 @@
 extern crate image;
 
-mod components;
 mod db;
-mod pages;
+mod home;
+mod lyrics;
 mod structs;
+mod ui;
 mod utils;
 
-use std::{
-  fs::File,
-  io::BufReader,
-  path::PathBuf,
-  sync::RwLock,
-  thread,
-  time::{Duration, Instant},
-};
+use std::{fs::File, io::BufReader, path::PathBuf, sync::RwLock, thread, time::Duration};
 
-use crate::pages::home::Home;
-use crate::pages::lyrics::Lyrics;
-use crate::structs::song::Song;
-use components::ui::layout::Layout;
 use db::setup::{load_db_data, setup_database};
 use dioxus::{
   desktop::{tao::window::Icon, WindowBuilder},
   prelude::*,
 };
+use home::page::Home;
+use lyrics::page::Lyrics;
 use once_cell::sync::Lazy;
 use rodio::{Decoder, OutputStream, Sink};
+use structs::song::Song;
 use structs::{
   playlist::Playlist,
   song::{CurrentTime, Playing},
 };
-use tracing::Level;
+use ui::layout::Layout;
 
 #[derive(Routable, PartialEq, Clone)]
 pub enum Route {
@@ -44,8 +37,7 @@ pub enum Route {
 
 static DATABASE_URL: Lazy<PathBuf> =
   Lazy::new(|| dir::home_dir().unwrap().join("Music/coderbox.db"));
-static SINK_INSTANCE: RwLock<Option<Sink>> = RwLock::new(None);
-static TIME: Lazy<RwLock<Instant>> = Lazy::new(|| RwLock::new(Instant::now()));
+static SINK: RwLock<Option<Sink>> = RwLock::new(None);
 
 fn main() {
   setup_database().expect("failed to setup database");
@@ -55,13 +47,13 @@ fn main() {
       OutputStream::try_default().expect("failed to get output stream");
     let sink = Sink::try_new(&stream_handle).expect("failed to create sink");
 
-    SINK_INSTANCE.write().unwrap().replace(sink);
+    SINK.write().unwrap().replace(sink);
 
     let file = BufReader::new(File::open("/home/coder2195/Music/rickroll.mp3").unwrap());
     // Decode that sound file into a source
     let source = Decoder::new(file).unwrap();
 
-    let sink_instance = SINK_INSTANCE.read().unwrap();
+    let sink_instance = SINK.read().unwrap();
     let sink = sink_instance.as_ref().unwrap();
     sink.append(source);
     sink.pause();
@@ -71,8 +63,6 @@ fn main() {
       thread::sleep(Duration::from_secs(1000))
     }
   });
-
-  dioxus_logger::init(Level::INFO).expect("failed to init logger");
 
   let cfg = dioxus::desktop::Config::new()
     .with_custom_head("<link rel=\"stylesheet\" href=\"public/tailwind.css\">".to_string())

@@ -5,11 +5,11 @@ use std::{
 };
 
 use dioxus::signals::{Readable, Signal, Writable};
-use rodio::Decoder;
+use rodio::{Decoder, Sink};
 
 use crate::{
   structs::song::{CurrentTime, Playing, Song},
-  SINK_INSTANCE, TIME,
+  SINK,
 };
 
 pub fn set_play(
@@ -20,7 +20,7 @@ pub fn set_play(
   playing: Option<Signal<Playing>>,
   play: Option<bool>,
 ) {
-  let sink_instance = SINK_INSTANCE.read().unwrap();
+  let sink_instance = SINK.read().unwrap();
   let sink = sink_instance.as_ref().unwrap();
 
   let current = current_song.read().clone();
@@ -45,10 +45,8 @@ pub fn set_play(
     let mut playing = playing.unwrap();
     playing.set(Playing(play));
     if play {
-      *TIME.write().unwrap() = Instant::now();
       sink.play();
     } else {
-      current_time.unwrap().write().0 += TIME.read().unwrap().elapsed().as_secs_f64();
       sink.pause();
     }
   }

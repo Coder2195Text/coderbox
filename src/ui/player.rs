@@ -1,5 +1,4 @@
 use core::time;
-use std::time::Instant;
 
 use dioxus::prelude::*;
 use dioxus_free_icons::icons::fa_regular_icons::FaCirclePlay;
@@ -14,8 +13,7 @@ use crate::structs::song::Playing;
 use crate::structs::song::Song;
 use crate::utils::player::set_play;
 use crate::Route;
-use crate::SINK_INSTANCE;
-use crate::TIME;
+use crate::SINK;
 
 use dioxus_free_icons::icons::fa_regular_icons::FaCirclePause;
 use dioxus_free_icons::Icon;
@@ -43,14 +41,15 @@ pub fn Player() -> Element {
 
   let _progress_task: Coroutine<()> = use_coroutine(|_| async move {
     loop {
+      let sink_instance = SINK.read().unwrap();
+      let sink = sink_instance.as_ref().unwrap();
+
       tokio::time::sleep(time::Duration::from_millis(200)).await;
       if held() || !playing().0 {
-        *TIME.write().unwrap() = Instant::now();
         continue;
       }
-      let elapsed_time = TIME.read().unwrap().elapsed().as_secs_f64();
-      current_time.write().0 += elapsed_time;
-      *TIME.write().unwrap() = Instant::now();
+
+      current_time.write().0 = sink.get_pos().as_secs_f64();
     }
   });
 
@@ -63,25 +62,16 @@ pub fn Player() -> Element {
   rsx! {
     div { class: "w-full p-2 fixed bottom-12 md:bottom-0 left-0",
       div { class: "rounded-md gradient-bg gap-2 flex p-2 h-20 w-full",
-        div { class: "w-1/3 px-2 h-full flex items-center justify-center flex-row gap-2",
-          img {
-            class: "rounded-full h-16 w-16",
-            src: image,
-            onerror: move |_| {
-                image.set("./public/cover.png".into());
+        div { class: "w-1/3 px-2 h-full flex items-center justify-center flex-col gap-2",
+          div { class: "text-xl truncate max-w-full",
+            {
+              song.as_ref().map(|song| song.name()).unwrap_or("Not playing")
             }
           }
-          div { class: "flex-1",
-            div { class: "text-xl truncate w-full",
-              {
-                song.as_ref().map(|song| song.name()).unwrap_or("Not playing")
-              }
-            }
-            div { class: "truncate w-full",
-              {
+          div { class: "truncate max-w-full",
+            {
 
-                song.as_ref().map(|song| song.artist()).unwrap_or("")
-              }
+              song.as_ref().map(|song| song.artist()).unwrap_or("")
             }
           }
         }
@@ -225,9 +215,9 @@ pub fn Player() -> Element {
               class: "flex-grow",
               style: "--g:3px;--l:3px;--s:12px;",
               oninput: move |e| {
-                  let sink_instance = SINK_INSTANCE.read().unwrap();
-                  let sink = sink_instance.as_ref().unwrap();
                   let val = e.value().parse::<f32>().expect("not number");
+                  let sink_instance = SINK.read().unwrap();
+                  let sink = sink_instance.as_ref().unwrap();
                   sink.set_volume(val / 100.0);
                   volume.set(val.into());
               }

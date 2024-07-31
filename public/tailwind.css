@@ -1,5 +1,5 @@
 /*
-! tailwindcss v3.4.5 | MIT License | https://tailwindcss.com
+! tailwindcss v3.4.7 | MIT License | https://tailwindcss.com
 */
 
 /*
@@ -543,7 +543,7 @@ body {
   background-position: center;
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity));
-  background-image: url("public/background.svg");
+  background-image: url("../public/background.svg");
   margin: 0;
   min-height: 100vh;
   display: grid;
@@ -775,6 +775,10 @@ button:hover,
   height: 100vh;
 }
 
+.h-\[calc\(100dvh-128px\)\] {
+  height: calc(100dvh - 128px);
+}
+
 .w-0\.5 {
   width: 0.125rem;
 }
@@ -813,6 +817,10 @@ button:hover,
 
 .w-screen {
   width: 100vw;
+}
+
+.max-w-full {
+  max-width: 100%;
 }
 
 .flex-1 {
@@ -945,6 +953,21 @@ button:hover,
   padding-right: 2rem;
 }
 
+.py-0 {
+  padding-top: 0px;
+  padding-bottom: 0px;
+}
+
+.py-1 {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.py-2 {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
 .pb-20 {
   padding-bottom: 5rem;
 }
@@ -959,6 +982,10 @@ button:hover,
 
 .pt-1 {
   padding-top: 0.25rem;
+}
+
+.text-left {
+  text-align: left;
 }
 
 .text-right {
@@ -1064,8 +1091,16 @@ button:hover,
     display: flex;
   }
 
+  .md\:h-\[calc\(100dvh-88px\)\] {
+    height: calc(100dvh - 88px);
+  }
+
   .md\:w-1\/4 {
     width: 25%;
+  }
+
+  .md\:w-3\/4 {
+    width: 75%;
   }
 
   .md\:flex-col {

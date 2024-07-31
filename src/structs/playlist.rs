@@ -1,7 +1,5 @@
 use std::path::PathBuf;
 
-use super::song::Song;
-
 #[derive(Clone)]
 pub struct PlaylistData {
   pub id: i32,

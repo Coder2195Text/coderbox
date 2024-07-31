@@ -41,8 +41,8 @@ impl Song {
   pub async fn lyrics_content(&self) -> Result<Lyrics, String> {
     if self.lyrics.is_none() {
       let raw_lyrics = reqwest::get(format!(
-        "https://lrclib.net/api/search?track_name={}",
-        self.name
+        "https://lrclib.net/api/search?track_name={}&artist_name={}",
+        self.name, self.artist
       ))
       .await
       .expect("Failed to fetch lyrics.")

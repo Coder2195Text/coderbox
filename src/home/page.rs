@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
-use crate::{components::cards::playlist::PlaylistCard, structs::music_db::MusicDB};
+use super::playlist::PlaylistCard;
+use crate::structs::music_db::MusicDB;
 use dioxus::prelude::*;
 
 #[component]
