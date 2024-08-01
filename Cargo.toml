@@ -11,7 +11,7 @@ edition = "2021"
 dioxus = { version = "0.5.1", features = ["desktop", "router"] }
 
 # Debug
-dir = "0.1.2"
+dirs = "5.0.1"
 rodio = "0.19.0"
 serde = { version = "1.0.203", features = ["derive"] }
 serde_json = "1.0.117"
@@ -26,5 +26,5 @@ dioxus-free-icons = { version = "0.8.6", features = [
   "ionicons",
   "material-design-icons-action",
 ] }
-image = "0.25.1"
 reqwest = { version = "0.12.5", features = ["json"] }
+dioxus-logger = "0.5.1"
